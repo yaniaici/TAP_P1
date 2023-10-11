@@ -1,28 +1,33 @@
 import faas.controller.Controller;
 import faas.controller.impl.ControllerImpl;
+import faas.invoker.Invoker;
+import faas.invoker.impl.InvokerImpl;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
 
 public class FaasApplication {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 
-        ControllerImpl<Map<String, Integer>, Integer> controller = new ControllerImpl<>();
+        List<Invoker<Integer, Integer>> invokers = new ArrayList<>();
 
-        Function<Map<String, Integer>, Integer> f = x -> x.get("x") - x.get("y");
-        controller.registerAction("addAction", f, 256);
-        Map<String, Integer> params = new HashMap<>();
-        params.put("x", 10);
-        params.put("y", 5);
+        // Agregar Invokers a la lista
+        invokers.add(new InvokerImpl<>(1024));  // Ejemplo de un Invoker con 1024 MB de memoria
+        invokers.add(new InvokerImpl<>(2048));  // Ejemplo de otro Invoker con 2048 MB de memoria
 
-        try {
-            Integer result = controller.invokeAction("addAction", params);
-            System.out.println("Resultado: " + result);
-        } catch (Exception e) {
-            System.out.println("ERROR");
-        }
+        // Crear un Controller y asignarle la lista de Invokers
+        Controller<Integer, Integer> controller = new ControllerImpl<>();
+        controller.setInvokers(invokers);
+        System.out.println(invokers);
+
+        // Registrar una acción de prueba en el Controller
+        Function<Integer, Integer> testAction = x -> x * 2;  // Ejemplo de una acción de prueba
+        controller.registerAction("testAction", testAction, 256);
+        System.out.println(invokers);
+
+        System.out.println(controller.invoke("testAction", 2));
 
     }
 }
