@@ -7,19 +7,20 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.function.Function;
 
-public class InvokerImpl<T,R> implements Invoker<T,R> {
+public class InvokerImpl implements Invoker {
 
     private final int totalMemoryMB;
     private int usedMemoryMB;
-    private Map<String, Function<T, R>> actions;
+    private final Map<String, Function<Object, Object>> actions;
 
     public InvokerImpl(int totalMemoryMB) {
         this.totalMemoryMB = totalMemoryMB;
         this.usedMemoryMB = 0;
         this.actions = new HashMap<>();
     }
+
     @Override
-    public void registerAction(String actionName, Function<T, R> action, int memoryMB) {
+    public void registerAction(String actionName, Function<Object, Object> action, int memoryMB) {
         if (usedMemoryMB + memoryMB <= totalMemoryMB) {
             actions.put(actionName, action);
             usedMemoryMB += memoryMB;
@@ -28,9 +29,8 @@ public class InvokerImpl<T,R> implements Invoker<T,R> {
         }
     }
 
-    @Override
-    public R invokeAction(String actionName, T params) throws Exception {
-        Function<T, R> action = actions.get(actionName);
+    public Object invokeAction(String actionName, Object params) throws Exception {
+        Function<Object, Object> action = actions.get(actionName);
 
         if (hasAction(actionName)) {
             try {
