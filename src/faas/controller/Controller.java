@@ -1,38 +1,77 @@
 package faas.controller;
 
 import faas.invoker.Invoker;
+import faas.policymanager.PolicyManager;
+
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.function.Function;
 
 public class Controller {
 
     private List<Invoker> invokers;
+    private PolicyManager policyManager;
 
     public void setInvokers(List<Invoker> invokers) {
         this.invokers = invokers;
     }
 
-    public List<Object> invoke(String actionName, Object params) throws Exception {
-        Invoker selectedInvoker = findInvoker(actionName);
+    public void setPolicyManager(PolicyManager policyManager) {
+        this.policyManager = policyManager;
+    }
 
-        if (params instanceof List) {
-            // Invocación grupal
-            List<Object> paramList = (List<Object>) params;
-            List<Object> results = new ArrayList<>();
-            for (Object param : paramList) {
-                results.add(selectedInvoker.invokeAction(actionName, param));
-            }
-            return results;
-        } else {
-            // Invocación individual
-            List<Object> result = new ArrayList<>(Collections.emptyList());
-            result.add(selectedInvoker.invokeAction(actionName, params));
-            return result;
+    public List<Object> invoke(String actionName, Object params) throws Exception {
+        checkPolicyManagerConfigured();
+
+        List<String> actionNames = convertActionNameToList(actionName);
+        List<Object> paramList = convertParamsToList(params);
+
+        List<Invoker> assignedInvokers = policyManager.assignFunctions(actionNames, invokers);
+
+        return executeAssignedActions(assignedInvokers, actionNames, paramList);
+    }
+
+    private void checkPolicyManagerConfigured() {
+        if (policyManager == null) {
+            throw new IllegalStateException("El PolicyManager no ha sido configurado.");
         }
     }
+
+    private List<String> convertActionNameToList(String actionName) {
+        return Collections.singletonList(actionName);
+    }
+
+    private List<Object> convertParamsToList(Object params) {
+        if (params instanceof List) {
+            return (List<Object>) params;
+        } else {
+            return Collections.singletonList(params);
+        }
+    }
+
+    private List<Object> executeAssignedActions(List<Invoker> assignedInvokers, List<String> actionNames, List<Object> paramList) throws Exception {
+        List<Object> results = new ArrayList<>();
+
+        Iterator<String> actionNameIterator = actionNames.iterator();
+        Iterator<Object> paramIterator = paramList.iterator();
+
+        for (Invoker assignedInvoker : assignedInvokers) {
+            if (!actionNameIterator.hasNext() || !paramIterator.hasNext()) {
+                break; // Si no quedan acciones o parámetros, salimos del bucle.
+            }
+
+            String action = actionNameIterator.next();
+            Object param = paramIterator.next();
+
+            results.add(assignedInvoker.invokeAction(action, param));
+        }
+
+        return results;
+    }
+
+
 
     public void registerAction(String actionName, Function<Object, Object> action, int memoryMB) {
         Invoker targetInvoker = findAvailableInvoker(memoryMB);
@@ -56,15 +95,5 @@ public class Controller {
 
         // Si no se encuentra ningún Invoker disponible, devuelve null.
         return null;
-    }
-
-    private Invoker findInvoker(String actionName) {
-        for (Invoker invoker : invokers) {
-            if (invoker.hasAction(actionName)) {
-                return invoker;
-            }
-        }
-
-        throw new NoSuchElementException("Invoker no encontrado");
     }
 }

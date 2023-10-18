@@ -44,7 +44,7 @@ public class FaasApplication {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Error durante la invocación grupal");
         }
     }
     }
