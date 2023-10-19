@@ -5,7 +5,6 @@ import faas.policymanager.PolicyManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
 
@@ -26,12 +25,27 @@ public class Controller {
         checkPolicyManagerConfigured();
 
         List<String> actionNames = convertActionNameToList(actionName);
-        List<Object> paramList = convertParamsToList(params);
 
         List<Invoker> assignedInvokers = policyManager.assignFunctions(actionNames, invokers);
+        Invoker selectedInvoker = assignedInvokers.get(0);
 
-        return executeAssignedActions(assignedInvokers, actionNames, paramList);
+        if(params instanceof List) {
+            // Invocación grupal
+            List<Object> paramList = (List<Object>) params;
+            List<Object> results = new ArrayList<>();
+            for(Object param : paramList) {
+                results.add(selectedInvoker.invokeAction(actionName, param));
+            }
+
+            return results;
+        }else {
+            // Individual
+            List<Object> result = new ArrayList<>(Collections.emptyList());
+            result.add(selectedInvoker.invokeAction(actionName, params));
+            return result;
+        }
     }
+
 
     private void checkPolicyManagerConfigured() {
         if (policyManager == null) {
@@ -43,33 +57,8 @@ public class Controller {
         return Collections.singletonList(actionName);
     }
 
-    private List<Object> convertParamsToList(Object params) {
-        if (params instanceof List) {
-            return (List<Object>) params;
-        } else {
-            return Collections.singletonList(params);
-        }
-    }
 
-    private List<Object> executeAssignedActions(List<Invoker> assignedInvokers, List<String> actionNames, List<Object> paramList) throws Exception {
-        List<Object> results = new ArrayList<>();
 
-        Iterator<String> actionNameIterator = actionNames.iterator();
-        Iterator<Object> paramIterator = paramList.iterator();
-
-        for (Invoker assignedInvoker : assignedInvokers) {
-            if (!actionNameIterator.hasNext() || !paramIterator.hasNext()) {
-                break; // Si no quedan acciones o parámetros, salimos del bucle.
-            }
-
-            String action = actionNameIterator.next();
-            Object param = paramIterator.next();
-
-            results.add(assignedInvoker.invokeAction(action, param));
-        }
-
-        return results;
-    }
 
 
 

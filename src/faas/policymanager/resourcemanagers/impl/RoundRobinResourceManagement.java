@@ -13,7 +13,7 @@ public class RoundRobinResourceManagement implements ResourceManagementStrategy 
     public List<Invoker> assignFunctions(List<String> actions, List<Invoker> availableInvokers) {
         List<Invoker> assignedInvokers = new ArrayList<>();
 
-        for (String action : actions) {
+        for (String ignored : actions) {
             if (currentIndex >= availableInvokers.size()) {
                 currentIndex = 0; // Ciclo de nuevo al primer Invoker si es necesario
             }
@@ -22,6 +22,7 @@ public class RoundRobinResourceManagement implements ResourceManagementStrategy 
             assignedInvokers.add(invoker);
             currentIndex++;
         }
+
 
         return assignedInvokers;
     }

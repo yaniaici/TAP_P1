@@ -1,6 +1,8 @@
 import faas.controller.Controller;
 import faas.invoker.Invoker;
 import faas.invoker.impl.InvokerImpl;
+import faas.policymanager.PolicyManager;
+import faas.policymanager.resourcemanagers.impl.RoundRobinResourceManagement;
 
 import java.util.*;
 import java.util.function.Function;
@@ -14,6 +16,8 @@ public class FaasApplication {
 
         // Crear Controller y asignarle el Invoker
         Controller controller = new Controller();
+        PolicyManager policyManager = new PolicyManager(new RoundRobinResourceManagement());
+        controller.setPolicyManager(policyManager);
         controller.setInvokers(Collections.singletonList(invoker));
 
         // Registrar una acción de prueba en el Controller
@@ -31,21 +35,24 @@ public class FaasApplication {
 
         // Prueba grupal
         List<Map<String, Integer>> input = Arrays.asList(
-                Map.of("x", 2, "y", 3),
-                Map.of("x", 9, "y", 1),
-                Map.of("x", 8, "y", 8)
+                Map.of("x", 6, "y", 3),
+                Map.of("x", 9, "y", 7),
+                Map.of("x", 8, "y", 0)
         );
 
         try {
             List<Object> results = controller.invoke("testAction", input);
+            System.out.println("Resultados: " + results);
+
             for (Object result : results) {
                 if (result instanceof Integer) {
                     System.out.println("Resultado: " + (int) result);
                 }
             }
         } catch (Exception e) {
-            System.out.println("Error durante la invocación grupal");
+            System.out.println("Error durante la invocación grupal: " + e.getMessage());
         }
+
     }
     }
 
