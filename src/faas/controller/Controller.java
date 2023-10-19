@@ -1,15 +1,19 @@
 package faas.controller;
 
 import faas.invoker.Invoker;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.NoSuchElementException;
+import faas.future.impl.ResultFutureImpl;
+
+import java.util.concurrent.*;
+import java.util.*;
 import java.util.function.Function;
 
 public class Controller {
 
     private List<Invoker> invokers;
+    private HashMap<String, Function<Object, Object>> actions = new HashMap<>();
+
+    // ExecutorService para manejar la ejecución concurrente
+    private ExecutorService executor = Executors.newFixedThreadPool(10);
 
     public void setInvokers(List<Invoker> invokers) {
         this.invokers = invokers;
@@ -31,6 +35,24 @@ public class Controller {
             List<Object> result = new ArrayList<>(Collections.emptyList());
             result.add(selectedInvoker.invokeAction(actionName, params));
             return result;
+        }
+    }
+
+    public ResultFutureImpl<Object> invoke_async(String actionName, Object params) throws Exception {
+        Invoker selectedInvoker = findInvoker(actionName);
+        if (params instanceof List) {
+            // Invocación grupal
+            List<Object> paramList = (List<Object>) params;
+            ResultFutureImpl<Object> results = new ResultFutureImpl<>();
+            for (Object param : paramList) {
+                results.add(selectedInvoker.invokeAction(actionName, param));
+            }
+            return results;
+        } else {
+            // Invocación individual
+            ResultFutureImpl<Object> results = new ResultFutureImpl<>();
+            results.add(selectedInvoker.invokeAction(actionName, params));
+            return results;
         }
     }
 

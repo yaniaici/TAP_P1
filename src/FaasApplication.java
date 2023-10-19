@@ -1,14 +1,16 @@
 import faas.controller.Controller;
 import faas.invoker.Invoker;
 import faas.invoker.impl.InvokerImpl;
+import faas.future.impl.ResultFutureImpl;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.function.Function;
 
 public class FaasApplication {
 
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         // Crear Invoker de prueba con 1024 MB de memoria
         Invoker invoker = new InvokerImpl(1024);
 
@@ -46,6 +48,22 @@ public class FaasApplication {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        Function<Object, Object> sleep = s -> {
+            try {
+                Thread.sleep(Duration.ofSeconds(5));
+                return "Done!";
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        };
+        controller.registerAction("sleepAction", sleep, 256);
+        ResultFutureImpl<Object> fut1 = controller.invoke_async("sleepAction", 5);
+        ResultFutureImpl<Object> fut2 = controller.invoke_async("sleepAction", 5);
+        ResultFutureImpl<Object> fut3 = controller.invoke_async("sleepAction", 5);
+        fut1.get();
+        fut2.get();
+        fut3.get();
+
     }
     }
 
