@@ -63,7 +63,9 @@ public class FaasApplication {
         fut1.get();
         fut2.get();
         fut3.get();
-
+        System.out.println("Fut 1: " + fut1.get());
+        System.out.println("Fut 2: " + fut2.get());
+        System.out.println("Fut 3: " + fut3.get());
     }
     }
 

@@ -38,29 +38,45 @@ public class Controller {
         }
     }
 
-    public ResultFutureImpl<Object> invoke_async(String actionName, Object params) throws Exception {
+    public ResultFutureImpl<Object> invoke_async(String actionName, Object parameters) {
+        // Encuentra el Invoker para la acción dada
         Invoker selectedInvoker = findInvoker(actionName);
-        if (params instanceof List) {
-            // Invocación grupal
-            List<Object> paramList = (List<Object>) params;
-            ResultFutureImpl<Object> results = new ResultFutureImpl<>();
-            for (Object param : paramList) {
-                results.add(selectedInvoker.invokeAction(actionName, param));
+
+        // Crea un objeto ResultFutureImpl para representar el resultado futuro
+        ResultFutureImpl<Object> futureResult = new ResultFutureImpl<>();
+
+        // Usa el ExecutorService para ejecutar la acción de manera asíncrona
+        executor.submit(() -> {
+            try {
+                Object result;
+                if (parameters instanceof List) {
+                    List<Object> paramList = (List<Object>) parameters;
+                    List<Object> results = new ArrayList<>();
+                    for (Object param : paramList) {
+                        results.add(selectedInvoker.invokeAction(actionName, param));
+                    }
+                    result = results;
+                } else {
+                    result = selectedInvoker.invokeAction(actionName, parameters);
+                }
+
+                // Establece el resultado en el future
+                futureResult.set(result);
+            } catch (Exception e) {
+                // Handle exceptions, you can set an exception in your future or handle it differently
+                System.out.println("Error al ejecutar la acción '" + actionName + "': " + e.getMessage());
             }
-            return results;
-        } else {
-            // Invocación individual
-            ResultFutureImpl<Object> results = new ResultFutureImpl<>();
-            results.add(selectedInvoker.invokeAction(actionName, params));
-            return results;
-        }
+        });
+
+        return futureResult;
     }
 
     public void registerAction(String actionName, Function<Object, Object> action, int memoryMB) {
         Invoker targetInvoker = findAvailableInvoker(memoryMB);
 
         if (targetInvoker == null) {
-            System.out.println("No hay Invokers disponibles con suficiente memoria para registrar la acción '" + actionName + "'.");
+            System.out.println("No hay Invokers disponibles con suficiente memoria para registrar la acción '" + actionName + "', accion en cola para posterior ejecucion.");
+            actions.put(actionName, action);
             return;
         }
 
