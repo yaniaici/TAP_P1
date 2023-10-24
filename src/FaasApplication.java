@@ -50,7 +50,7 @@ public class FaasApplication {
         }
         Function<Object, Object> sleep = s -> {
             try {
-                Thread.sleep(Duration.ofSeconds(5));
+                Thread.sleep(Duration.ofSeconds((Integer)s));
                 return "Done!";
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
