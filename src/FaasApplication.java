@@ -1,9 +1,11 @@
 import faas.controller.Controller;
+import faas.decorator.TimerDecorator;
 import faas.invoker.Invoker;
 import faas.invoker.impl.InvokerImpl;
 import faas.policymanager.PolicyManager;
 import faas.policymanager.resourcemanagers.impl.RoundRobinResourceManagement;
 
+import java.math.BigInteger;
 import java.util.*;
 import java.util.function.Function;
 
@@ -52,6 +54,32 @@ public class FaasApplication {
         } catch (Exception e) {
             System.out.println("Error durante la invocación grupal: " + e.getMessage());
         }
+
+        // Prueba individual decorators
+        Function<Object, Object> testFactorial = x -> {
+            if (x instanceof Map<?, ?> map) {
+                Object xValue = map.get("x");
+                if (xValue instanceof Integer) {
+                    BigInteger result = new BigInteger("1");
+
+                    for (int i = 1; i <= (int)xValue; i++) {
+                        result = result.multiply(BigInteger.valueOf(i));
+                    }
+
+                    return result;
+                }
+            }
+            return null;
+        };
+        InvokerImpl invk = new InvokerImpl(512);
+        invk.registerAction("testFactorial", testFactorial, 256);
+        InvokerImpl decorator = new TimerDecorator(invk);
+        try {
+            System.out.println(decorator.invokeAction("testFactorial", Map.of("x", 5000)));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
 
     }
     }
