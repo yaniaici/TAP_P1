@@ -1,4 +1,5 @@
 import faas.controller.Controller;
+import faas.decorator.MemoizationDecorator;
 import faas.decorator.TimerDecorator;
 import faas.invoker.Invoker;
 import faas.invoker.impl.InvokerImpl;
@@ -79,7 +80,17 @@ public class FaasApplication {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
+        InvokerImpl decorator2 = new MemoizationDecorator(decorator);
+        try {
+            System.out.println(decorator2.invokeAction("testFactorial", Map.of("x", 6000)));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        try {
+            System.out.println(decorator2.invokeAction("testFactorial", Map.of("x", 6000)));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
     }
     }
