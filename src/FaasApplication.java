@@ -1,3 +1,5 @@
+import faas.ActionProxy;
+import faas.DynamicProxy;
 import faas.controller.Controller;
 import faas.decorator.MemoizationDecorator;
 import faas.decorator.TimerDecorator;
@@ -91,7 +93,13 @@ public class FaasApplication {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
+        DynamicProxy dController = (DynamicProxy) ActionProxy.newInstance(controller);
+        dController.registerAction("testFactorial", testFactorial, 256);
+        try {
+            System.out.println(dController.invoke("testFactorial", Map.of("x", 100)));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
     }
 

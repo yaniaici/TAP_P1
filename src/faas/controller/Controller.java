@@ -1,5 +1,6 @@
 package faas.controller;
 
+import faas.DynamicProxy;
 import faas.future.impl.ResultFutureImpl;
 import faas.invoker.Invoker;
 import faas.policymanager.PolicyManager;
@@ -11,12 +12,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
 
-public class Controller {
+public class Controller implements DynamicProxy {
 
     private List<Invoker> invokers;
     private PolicyManager policyManager;
 
-    private ExecutorService executor = Executors.newFixedThreadPool(10);
+    private ExecutorService executor = Executors.newFixedThreadPool(8);
 
 
 
