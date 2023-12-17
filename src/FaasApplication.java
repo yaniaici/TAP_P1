@@ -15,10 +15,11 @@ public class FaasApplication {
 
     public static void main(String[] args) {
         // Crear Invoker de prueba con 1024 MB de memoria
-        Invoker invoker = new InvokerImpl(1024);
 
         // Crear Controller y asignarle el Invoker
         Controller controller = new Controller();
+        Invoker invoker = new InvokerImpl(1024, controller, "1");
+
         PolicyManager policyManager = new PolicyManager(new RoundRobinResourceManagement());
         controller.setPolicyManager(policyManager);
         controller.setInvokers(Collections.singletonList(invoker));
@@ -72,7 +73,7 @@ public class FaasApplication {
             }
             return null;
         };
-        InvokerImpl invk = new InvokerImpl(512);
+        InvokerImpl invk = new InvokerImpl(512, controller, "2");
         invk.registerAction("testFactorial", testFactorial, 256);
         InvokerImpl decorator = new TimerDecorator(invk);
         try {
@@ -91,6 +92,9 @@ public class FaasApplication {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+
+        controller.displayExecutionTimeStats();
+        controller.displayExecutionTimeByInvoker();
 
     }
     }
