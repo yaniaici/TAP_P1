@@ -5,9 +5,14 @@ import faas.invoker.Invoker;
 import faas.invoker.impl.InvokerImpl;
 import faas.policymanager.PolicyManager;
 import faas.policymanager.resourcemanagers.impl.RoundRobinResourceManagement;
+import faas.reflection.ActionProxy;
+import faas.reflection.DynamicProxy;
 
 import java.math.BigInteger;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 public class FaasApplication {
@@ -19,7 +24,6 @@ public class FaasApplication {
         // Crear Controller y asignarle el Invoker
         Controller controller = new Controller();
         Invoker invoker = new InvokerImpl(1024, controller, "1");
-
         PolicyManager policyManager = new PolicyManager(new RoundRobinResourceManagement());
         controller.setPolicyManager(policyManager);
         controller.setInvokers(Collections.singletonList(invoker));
@@ -92,10 +96,15 @@ public class FaasApplication {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        DynamicProxy dController = (DynamicProxy) ActionProxy.newInstance(controller);
+        dController.registerAction("testFactorial", testFactorial, 256);
+        try {
+            System.out.println(dController.invoke("testFactorial", Map.of("x", 100)));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         controller.displayExecutionTimeStats();
         controller.displayExecutionTimeByInvoker();
-
     }
-    }
-
+}
