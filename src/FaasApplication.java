@@ -1,5 +1,5 @@
-import faas.ActionProxy;
-import faas.DynamicProxy;
+import faas.reflection.ActionProxy;
+import faas.reflection.DynamicProxy;
 import faas.controller.Controller;
 import faas.decorator.MemoizationDecorator;
 import faas.decorator.TimerDecorator;
@@ -46,17 +46,17 @@ public class FaasApplication {
         );
 
         try {
-            List<Object> results = controller.invoke("testAction", input);
-            System.out.println("Resultados: " + results);
+			List<Object> results = controller.invoke("testAction", input);
+			System.out.println("Resultados: " + results);
 
-            for (Object result : results) {
-                if (result instanceof Integer) {
-                    System.out.println("Resultado: " + (int) result);
-                }
-            }
-        } catch (Exception e) {
-            System.out.println("Error durante la invocación grupal: " + e.getMessage());
-        }
+			for (Object result : results) {
+				if (result instanceof Integer) {
+					System.out.println("Resultado: " + (int) result);
+				}
+			}
+		} catch (Exception e) {
+			System.out.println("Error durante la invocación grupal: " + e.getMessage());
+		}
 
         // Prueba individual decorators
         Function<Object, Object> testFactorial = x -> {

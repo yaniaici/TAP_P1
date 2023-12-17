@@ -1,4 +1,4 @@
-package faas;
+package faas.reflection;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;

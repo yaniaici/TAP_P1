@@ -1,6 +1,6 @@
 package faas.controller;
 
-import faas.DynamicProxy;
+import faas.reflection.DynamicProxy;
 import faas.future.impl.ResultFutureImpl;
 import faas.invoker.Invoker;
 import faas.policymanager.PolicyManager;
