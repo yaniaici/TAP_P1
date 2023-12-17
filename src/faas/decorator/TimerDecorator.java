@@ -8,7 +8,7 @@ public class TimerDecorator extends InvokerImpl {
     InvokerImpl client;
 
     public TimerDecorator(InvokerImpl invoker){
-        super(0);
+         super(0, invoker.getController(), invoker.getInvokerId());
         client = invoker;
     }
 

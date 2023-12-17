@@ -1,23 +1,27 @@
 package faas.controller;
 
-import faas.reflection.DynamicProxy;
 import faas.future.impl.ResultFutureImpl;
 import faas.invoker.Invoker;
+import faas.observer.Metrics;
 import faas.policymanager.PolicyManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.LongSummaryStatistics;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
-public class Controller implements DynamicProxy {
+public class Controller {
 
     private List<Invoker> invokers;
     private PolicyManager policyManager;
 
-    private ExecutorService executor = Executors.newFixedThreadPool(8);
+    private ExecutorService executor = Executors.newFixedThreadPool(10);
+    private List<Metrics> metricsList = new ArrayList<>();
+
 
 
 
@@ -93,6 +97,11 @@ public class Controller implements DynamicProxy {
         return futureResult;
     }
 
+    public synchronized void receiveMetrics(Metrics metrics) {
+        metricsList.add(metrics);
+    }
+
+
 
     private void checkPolicyManagerConfigured() {
         if (policyManager == null) {
@@ -131,5 +140,28 @@ public class Controller implements DynamicProxy {
 
         // Si no se encuentra ningún Invoker disponible, devuelve null.
         return null;
+    }
+
+    public void displayExecutionTimeStats() {
+        metricsList.stream()
+                .collect(Collectors.groupingBy(Metrics::getInvokerId))
+                .forEach((action, metrics) -> {
+                    LongSummaryStatistics stats = metrics.stream()
+                            .mapToLong(Metrics::getExecutionTime)
+                            .summaryStatistics();
+
+                    System.out.println("Action: " + action +
+                            ", Max Time: " + stats.getMax() +
+                            ", Min Time: " + stats.getMin() +
+                            ", Avg Time: " + stats.getAverage());
+                });
+    }
+
+    public void displayExecutionTimeByInvoker() {
+        metricsList.stream()
+                .collect(Collectors.groupingBy(Metrics::getInvokerId,
+                        Collectors.groupingBy(Metrics::getExecutionTime)))
+                .forEach((action, totalTime) ->
+                        System.out.println("Action: " + action + ", Total Time: " + totalTime + "ms"));
     }
 }

@@ -9,7 +9,7 @@ public class MemoizationDecorator extends InvokerImpl {
     HashMap<Integer, Object> cache = new HashMap<Integer, Object>();
 
     public MemoizationDecorator(InvokerImpl invoker){
-        super(0);
+        super(0, invoker.getController(), invoker.getInvokerId());
         client = invoker;
     }
 
