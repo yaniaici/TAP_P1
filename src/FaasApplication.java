@@ -7,7 +7,11 @@ import faas.invoker.Invoker;
 import faas.invoker.impl.InvokerImpl;
 import faas.policymanager.PolicyManager;
 import faas.policymanager.resourcemanagers.impl.RoundRobinResourceManagement;
+import faas.mapreduce.MapReduce;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.function.Function;
@@ -46,18 +50,19 @@ public class FaasApplication {
         );
 
         try {
-			List<Object> results = controller.invoke("testAction", input);
-			System.out.println("Resultados: " + results);
+            List<Object> results = controller.invoke("testAction", input);
+            System.out.println("Resultados: " + results);
 
-			for (Object result : results) {
-				if (result instanceof Integer) {
-					System.out.println("Resultado: " + (int) result);
-				}
-			}
-		} catch (Exception e) {
-			System.out.println("Error durante la invocación grupal: " + e.getMessage());
-		}
+            for (Object result : results) {
+                if (result instanceof Integer) {
+                    System.out.println("Resultado: " + (int) result);
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Error durante la invocación grupal: " + e.getMessage());
+        }
 
+        /*
         // Prueba individual decorators
         Function<Object, Object> testFactorial = x -> {
             if (x instanceof Map<?, ?> map) {
@@ -100,6 +105,41 @@ public class FaasApplication {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        */
+        // Prueba individual
+
+        try {
+            String txt = leer();
+            MapReduce counter = new MapReduce();
+            System.out.println(counter.wordCount(txt,4));
+            System.out.println(counter.countWords(txt,4));
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
     }
+
+    public static String leer() throws IOException {
+        // Ruta del archivo
+        String txtRoute = "src/faas/booksForMapReduce/proba.txt";
+
+        BufferedReader reader = new BufferedReader(new FileReader(txtRoute));
+        StringBuilder stringBuilder = new StringBuilder();
+        String line;
+
+        // Leemos línea por línea y agregamos al StringBuilder
+        while ((line = reader.readLine()) != null) {
+            stringBuilder.append(line).append("\n");
+        }
+
+        // Cerramos el BufferedReader
+        reader.close();
+
+
+        // Devolvemos el contenido
+        return stringBuilder.toString();
     }
+
+}
 
