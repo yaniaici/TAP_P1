@@ -88,8 +88,8 @@ public class MapReduce {
     }
 
     private static Controller getController(String actionName, Function<Object, Object> action, int memoryMB){
-        Invoker invoker = new InvokerImpl(2048);
         Controller controller = new Controller();
+        Invoker invoker = new InvokerImpl(2048,controller,"2");
         PolicyManager policyManager = new PolicyManager(new RoundRobinResourceManagement());
         controller.setPolicyManager(policyManager);
         controller.setInvokers(Collections.singletonList(invoker));

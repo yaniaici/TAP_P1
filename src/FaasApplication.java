@@ -120,7 +120,8 @@ public class FaasApplication {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
+        controller.displayExecutionTimeStats();
+        controller.displayExecutionTimeByInvoker();
     }
 
     public static String leer() throws IOException {
@@ -143,8 +144,6 @@ public class FaasApplication {
         // Devolvemos el contenido
         return stringBuilder.toString();
     }
-    controller.displayExecutionTimeStats();
-    controller.displayExecutionTimeByInvoker();
 
 }
 
