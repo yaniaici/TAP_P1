@@ -1,5 +1,3 @@
-import faas.reflection.ActionProxy;
-import faas.reflection.DynamicProxy;
 import faas.controller.Controller;
 import faas.decorator.MemoizationDecorator;
 import faas.decorator.TimerDecorator;
@@ -8,12 +6,17 @@ import faas.invoker.impl.InvokerImpl;
 import faas.policymanager.PolicyManager;
 import faas.policymanager.resourcemanagers.impl.RoundRobinResourceManagement;
 import faas.mapreduce.MapReduce;
+import faas.reflection.ActionProxy;
+import faas.reflection.DynamicProxy;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 public class FaasApplication {
@@ -21,10 +24,10 @@ public class FaasApplication {
 
     public static void main(String[] args) {
         // Crear Invoker de prueba con 1024 MB de memoria
-        Invoker invoker = new InvokerImpl(1024);
 
         // Crear Controller y asignarle el Invoker
         Controller controller = new Controller();
+        Invoker invoker = new InvokerImpl(1024, controller, "1");
         PolicyManager policyManager = new PolicyManager(new RoundRobinResourceManagement());
         controller.setPolicyManager(policyManager);
         controller.setInvokers(Collections.singletonList(invoker));
@@ -79,7 +82,7 @@ public class FaasApplication {
             }
             return null;
         };
-        InvokerImpl invk = new InvokerImpl(512);
+        InvokerImpl invk = new InvokerImpl(512, controller, "2");
         invk.registerAction("testFactorial", testFactorial, 256);
         InvokerImpl decorator = new TimerDecorator(invk);
         try {
@@ -140,6 +143,10 @@ public class FaasApplication {
         // Devolvemos el contenido
         return stringBuilder.toString();
     }
+    controller.displayExecutionTimeStats();
+    controller.displayExecutionTimeByInvoker();
 
 }
+
+    
 

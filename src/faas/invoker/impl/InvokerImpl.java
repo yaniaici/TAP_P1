@@ -1,22 +1,38 @@
 package faas.invoker.impl;
 
+import faas.controller.Controller;
 import faas.invoker.Invoker;
+import faas.observer.Metrics;
+import faas.observer.Observer;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.function.Function;
 
-public class InvokerImpl implements Invoker {
+public class InvokerImpl implements Invoker, Observer {
 
+    private final String invokerId;
     private final int totalMemoryMB;
     private int usedMemoryMB;
     private final Map<String, Function<Object, Object>> actions;
 
-    public InvokerImpl(int totalMemoryMB) {
+    public String getInvokerId() {
+        return invokerId;
+    }
+
+    public Controller getController() {
+        return controller;
+    }
+
+    private final Controller controller;
+
+    public InvokerImpl(int totalMemoryMB, Controller controller, String invokerId) {
         this.totalMemoryMB = totalMemoryMB;
         this.usedMemoryMB = 0;
         this.actions = new HashMap<>();
+        this.controller = controller;
+        this.invokerId = invokerId;
     }
 
     @Override
@@ -30,17 +46,26 @@ public class InvokerImpl implements Invoker {
     }
 
     public Object invokeAction(String actionName, Object params) throws Exception {
-        Function<Object, Object> action = actions.get(actionName);
-
-        if (hasAction(actionName)) {
-            try {
-                return action.apply(params);
-            } catch (Exception e) {
-                throw new Exception("Error al ejecutar la acción '" + actionName + "': " + e.getMessage(), e);
-            }
+        if(!hasAction(actionName)) {
+            throw new NoSuchElementException("Acción no disponible: " + actionName);
         }
 
-        throw new NoSuchElementException("Acción no disponible");
+        long startTime = System.currentTimeMillis();
+        Function<Object, Object> action = actions.get(actionName);
+        Object result;
+
+            try {
+                result = action.apply(params);
+            } catch (Exception e) {
+                throw new Exception("Error al ejecutar la acción '" + actionName + "': " + e.getMessage(), e);
+            } finally {
+                long endTime = System.currentTimeMillis();
+                Metrics metrics = new Metrics(invokerId, endTime - startTime, usedMemoryMB);
+                updateMetrics(metrics);
+            }
+
+            return result;
+
     }
 
     @Override
@@ -60,5 +85,10 @@ public class InvokerImpl implements Invoker {
                 ", usedMemoryMB=" + usedMemoryMB +
                 ", actions=" + actions +
                 '}';
+    }
+
+    @Override
+    public void updateMetrics(Metrics metrics) {
+        controller.receiveMetrics(metrics);
     }
 }
