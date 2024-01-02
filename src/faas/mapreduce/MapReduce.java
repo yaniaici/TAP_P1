@@ -11,7 +11,7 @@ import java.util.*;
 import java.util.function.Function;
 
 public class MapReduce {
-    public static Map<String,Integer> wordCount(String text, int threads) {
+    public Map<String,Integer> wordCount(String text, int threads) {
         //Dividimos el texto en palabras y eliminaos los caracteres especiales
         List<List<String>> partials = divideParts(text, threads);
         Function<Object, Object> wordscount = x -> {
@@ -43,7 +43,7 @@ public class MapReduce {
         }
     }
 
-    public static Map<String,Integer> countWords(String text, int threads) {
+    public Map<String,Integer> countWords(String text, int threads) {
         //Dividimos el texto en palabras y eliminaos los caracteres especiales
         List<List<String>> partials = divideParts(text, threads);
         Function<Object, Object> countwords = x -> {
@@ -77,7 +77,7 @@ public class MapReduce {
         }
     }
 
-    private static Map<String, Integer> mergeMaps(Map<String, Integer> map1, Map<String, Integer> map2) {
+    private Map<String, Integer> mergeMaps(Map<String, Integer> map1, Map<String, Integer> map2) {
         Map<String, Integer> result = new HashMap<>(map1);
 
         for (Map.Entry<String, Integer> entry : map2.entrySet()) {
@@ -87,7 +87,7 @@ public class MapReduce {
         return result;
     }
 
-    private static Controller getController(String actionName, Function<Object, Object> action, int memoryMB){
+    private Controller getController(String actionName, Function<Object, Object> action, int memoryMB){
         Controller controller = new Controller();
         Invoker invoker = new InvokerImpl(2048,controller,"2");
         PolicyManager policyManager = new PolicyManager(new RoundRobinResourceManagement());
@@ -97,7 +97,7 @@ public class MapReduce {
         return controller;
     }
 
-    private static List<List<String>> divideParts(String text, int threads){
+    private List<List<String>> divideParts(String text, int threads){
         List<String> all = Arrays.stream(text.split(" "))
                 .map(word -> word.replaceAll("[\",.?\\n]", ""))
                 .toList();
