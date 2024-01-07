@@ -6,13 +6,30 @@ import main.faas.policymanager.resourcemanagers.ResourceManagementStrategy;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Implementación de la estrategia de gestión de recursos que asigna acciones a los invocadores
+ * en grandes grupos. Cada grupo de acciones es asignado a un único invocador hasta que se alcanza
+ * el tamaño del grupo especificado.
+ */
 public class BigGroupResourceManagement implements ResourceManagementStrategy {
     private final int groupSize;
-
+    /**
+     * Constructor que inicializa la estrategia de gestión de recursos con un tamaño de grupo específico.
+     *
+     * @param groupSize El tamaño máximo de cada grupo de acciones asignado a un invocador.
+     */
     public BigGroupResourceManagement(int groupSize) {
         this.groupSize = groupSize;
     }
 
+    /**
+     * Asigna funciones a los invocadores disponibles agrupándolas en grandes grupos.
+     * Cada grupo de funciones es asignado a un invocador hasta alcanzar el tamaño del grupo.
+     *
+     * @param actions Lista de nombres de acciones a asignar.
+     * @param availableInvokers Lista de invocadores disponibles.
+     * @return Lista de invocadores con las funciones asignadas.
+     */
     @Override
     public List<Invoker> assignFunctions(List<String> actions, List<Invoker> availableInvokers) {
         List<Invoker> assignedInvokers = new ArrayList<>();
