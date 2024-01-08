@@ -17,7 +17,7 @@ public class MemoizationDecorator extends InvokerImpl {
      *
      * @param invoker El InvokerImpl que será decorado con memoización.
      */
-    public MemoizationDecorator(InvokerImpl invoker){
+    public MemoizationDecorator(InvokerImpl invoker) {
         super(0, invoker.getController(), invoker.getInvokerId());
         this.client = invoker;
     }
@@ -33,9 +33,9 @@ public class MemoizationDecorator extends InvokerImpl {
      */
     public Object invokeAction(String actionName, Object params) throws Exception {
         int key = generateCacheKey(actionName, params);
-        if(cache.containsKey(key)){
+        if (cache.containsKey(key)) {
             Remember r = (Remember) cache.get(key);
-            if(r.parameters.equals(params)) {
+            if (r.parameters.equals(params)) {
                 return r.result;
             } else {
                 return cacheResultAndInvoke(actionName, params, key);
@@ -77,15 +77,4 @@ public class MemoizationDecorator extends InvokerImpl {
         return result;
     }
 
-    // Clase interna Remember no está definida en el fragmento original.
-    // Asumiré que es una clase simple para almacenar pares de parámetros y resultados.
-    private static class Remember {
-        Object parameters;
-        Object result;
-
-        Remember(Object parameters, Object result) {
-            this.parameters = parameters;
-            this.result = result;
-        }
-    }
 }
