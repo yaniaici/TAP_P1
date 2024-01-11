@@ -27,6 +27,7 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="scala-sdk-2.11.8" level="application" />
   </component>
   <component name="SonarLintModuleSettings">
     <option name="uniqueId" value="5d41ce78-4fa8-4363-b981-b2db5b129929" />
