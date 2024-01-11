@@ -18,7 +18,7 @@ class Invoker (totalMemory:Int, controller:Controller, invokerID:String){
       usedMemory = usedMemory + memoryMB
       println(usedMemory)
     }else{
-      println("No hay suficiente memoria para registrar la acción '\" + actionName + \"'.\"")
+      println(s"No hay suficiente memoria para registrar la acción $action")
     }
   }
   def invokeAction(actionName:String, params:Object):Object = {
