@@ -23,7 +23,7 @@ public class RoundRobinResourceManagement implements ResourceManagementStrategy 
      * @return Lista de invocadores asignados a cada acción.
      */
     @Override
-    public List<Invoker> assignFunctions(List<String> actions, List<Invoker> availableInvokers) {
+    public List<Invoker> assignInvokers(List<String> actions, List<Invoker> availableInvokers, List<Integer> memory) {
         List<Invoker> assignedInvokers = new ArrayList<>();
 
         for (String ignored : actions) {
@@ -32,7 +32,8 @@ public class RoundRobinResourceManagement implements ResourceManagementStrategy 
             }
 
             Invoker invoker = availableInvokers.get(currentIndex);
-            assignedInvokers.add(invoker);
+            if(availableInvokers.get(currentIndex).getFreeMemoryMB()>=memory.get(0))
+                assignedInvokers.add(invoker);
             currentIndex++;
         }
 

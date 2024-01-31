@@ -22,52 +22,20 @@ public class GreedyGroupResourceManagement implements ResourceManagementStrategy
      * @return Lista de invocadores asignados a cada acción.
      */
     @Override
-    public List<Invoker> assignFunctions(List<String> actions, List<Invoker> availableInvokers) {
+    public List<Invoker> assignInvokers(List<String> actions, List<Invoker> availableInvokers, List<Integer> memory) {
         List<Invoker> assignedInvokers = new ArrayList<>();
-        List<Invoker> sortedInvokers = sortInvokersByFreeMemory(availableInvokers);
 
-        for (String action : actions) {
-            Invoker bestInvoker = selectBestInvoker(sortedInvokers);
-
-            if (bestInvoker != null) {
-                assignedInvokers.add(bestInvoker);
+        for (Invoker invoker : availableInvokers) {
+            for (String action : actions) {
+                if (memory.get(actions.indexOf(action)) <= invoker.getFreeMemoryMB()) {
+                    assignedInvokers.add(invoker);
+                }
             }
         }
 
         return assignedInvokers;
     }
 
-    /**
-     * Ordena los invocadores disponibles por la cantidad de memoria libre en orden descendente.
-     *
-     * @param invokers Lista de invocadores a ordenar.
-     * @return Lista de invocadores ordenada.
-     */
-    private List<Invoker> sortInvokersByFreeMemory(List<Invoker> invokers) {
-        List<Invoker> sortedInvokers = new ArrayList<>(invokers);
-        sortedInvokers.sort((invoker1, invoker2) -> Integer.compare(invoker2.getFreeMemoryMB(), invoker1.getFreeMemoryMB()));
-        return sortedInvokers;
-    }
 
-    /**
-     * Selecciona el mejor invocador para una acción, basándose en la cantidad de memoria libre.
-     *
-     * @param invokers Lista de invocadores entre los que elegir.
-     * @return El invocador seleccionado con la mayor cantidad de memoria libre.
-     */
-    private Invoker selectBestInvoker(List<Invoker> invokers) {
-        Invoker bestInvoker = null;
-        int bestRemainingMemory = 0;
-
-        for (Invoker invoker : invokers) {
-            int remainingMemory = invoker.getFreeMemoryMB();
-            if (remainingMemory >= bestRemainingMemory) {
-                bestInvoker = invoker;
-                bestRemainingMemory = remainingMemory;
-            }
-        }
-
-        return bestInvoker;
-    }
 
 }

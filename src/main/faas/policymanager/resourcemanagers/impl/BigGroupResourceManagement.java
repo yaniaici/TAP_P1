@@ -5,6 +5,7 @@ import main.faas.policymanager.resourcemanagers.ResourceManagementStrategy;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * Implementación de la estrategia de gestión de recursos que asigna acciones a los invocadores
@@ -30,8 +31,9 @@ public class BigGroupResourceManagement implements ResourceManagementStrategy {
      * @param availableInvokers Lista de invocadores disponibles.
      * @return Lista de invocadores con las funciones asignadas.
      */
+
     @Override
-    public List<Invoker> assignFunctions(List<String> actions, List<Invoker> availableInvokers) {
+    public List<Invoker> assignInvokers(List<String> actions, List<Invoker> availableInvokers, List<Integer> memory) {
         List<Invoker> assignedInvokers = new ArrayList<>();
         int totalFunctions = actions.size();
         int totalGroups = (totalFunctions + groupSize - 1) / groupSize; // Redondea hacia arriba para incluir grupos parciales
@@ -45,14 +47,15 @@ public class BigGroupResourceManagement implements ResourceManagementStrategy {
             int functionsToAssign = Math.min(groupSize, totalFunctions - currentFunctionIndex);
 
             for (int j = 0; j < functionsToAssign; j++) {
-                assignedInvokers.add(invoker);
-                currentFunctionIndex++;
+                if(memory.get(currentFunctionIndex) > invoker.getFreeMemoryMB()){
+                    assignedInvokers.add(invoker);;
+                    currentFunctionIndex++;
+                }
             }
 
             currentGroup++;
             currentInvokerIndex++;
         }
-
         return assignedInvokers;
     }
 }

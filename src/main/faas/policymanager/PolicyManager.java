@@ -4,6 +4,7 @@ import main.faas.invoker.Invoker;
 import main.faas.policymanager.resourcemanagers.ResourceManagementStrategy;
 
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * PolicyManager es responsable de manejar la estrategia de asignación de recursos a los invocadores.
@@ -38,7 +39,7 @@ public class PolicyManager {
      * @param availableInvokers Lista de invocadores disponibles.
      * @return Lista de invocadores asignados a cada función.
      */
-    public List<Invoker> assignFunctions(List<String> functions, List<Invoker> availableInvokers) {
-        return currentStrategy.assignFunctions(functions, availableInvokers);
+    public List<Invoker> assignInvokers(List<String> functions, List<Invoker> availableInvokers, List<Integer> memory) {
+        return currentStrategy.assignInvokers(functions, availableInvokers, memory);
     }
 }

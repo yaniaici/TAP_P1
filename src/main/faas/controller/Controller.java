@@ -6,10 +6,7 @@ import main.faas.observer.Metrics;
 import main.faas.policymanager.PolicyManager;
 import main.faas.reflection.DynamicProxy;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.LongSummaryStatistics;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
@@ -42,6 +39,8 @@ public class Controller implements DynamicProxy {
      */
     private List<Metrics> metricsList = new ArrayList<>();
 
+    private HashMap<String, Function<Object,Object>> actions = new HashMap<>();
+    private HashMap<String, Integer> memory = new HashMap<>();
 
 
     /**
@@ -74,9 +73,14 @@ public class Controller implements DynamicProxy {
         checkPolicyManagerConfigured();
 
         List<String> actionNames = convertActionNameToList(actionName);
+        List <Integer> memoryList = new ArrayList<>();
+        for(String action : actionNames){
+            memoryList.add(memory.get(action));
+        }
+        List<Invoker> selectedInvokers = policyManager.assignInvokers(actionNames, invokers,memoryList);
+        Invoker selectedInvoker = selectedInvokers.get(0);
+        selectedInvoker.registerAction(actionName, actions.get(actionName), memory.get(actionName));
 
-        List<Invoker> assignedInvokers = policyManager.assignFunctions(actionNames, invokers);
-        Invoker selectedInvoker = assignedInvokers.get(0);
 
         if(params instanceof List) {
             // Invocación grupal
@@ -109,9 +113,13 @@ public class Controller implements DynamicProxy {
         List<String> actionNames = convertActionNameToList(actionName);
         System.out.println(actionNames);
 
-
-        List<Invoker> assignedInvokers = policyManager.assignFunctions(actionNames, invokers);
-        Invoker selectedInvoker = assignedInvokers.get(0);
+        List <Integer> memoryList = new ArrayList<>();
+        for(String action : actionNames){
+            memoryList.add(memory.get(action));
+        }
+        List<Invoker> selectedInvokers = policyManager.assignInvokers(actionNames, invokers,memoryList);
+        Invoker selectedInvoker = selectedInvokers.get(0);
+        selectedInvoker.registerAction(actionName, actions.get(actionName), memory.get(actionName));
 
         // Crea un objeto ResultFutureImpl para representar el resultado futuro
         ResultFutureImpl<Object> futureResult = new ResultFutureImpl<>();
@@ -178,42 +186,15 @@ public class Controller implements DynamicProxy {
 
 
     /**
-     * Registra una nueva acción en uno de los invocadores disponibles.
-     * La acción se registra solo si hay un invocador con suficiente memoria disponible.
+     * Registra una nueva acción, junto a la cantidad de memoria que ocupará.
      *
      * @param actionName Nombre de la acción a registrar.
      * @param action La función que representa la acción.
      * @param memoryMB La cantidad de memoria requerida para la acción.
      */
     public void registerAction(String actionName, Function<Object, Object> action, int memoryMB) {
-        Invoker targetInvoker = findAvailableInvoker(memoryMB);
-
-        if (targetInvoker == null) {
-            System.out.println("No hay Invokers disponibles con suficiente memoria para registrar la acción '" + actionName + "'.");
-            return;
-        }
-
-        // Registra la acción en el Invoker seleccionado.
-        targetInvoker.registerAction(actionName, action, memoryMB);
-    }
-
-    /**
-     * Busca un invocador disponible que tenga suficiente memoria libre.
-     *
-     * @param requiredMemoryMB La cantidad de memoria requerida.
-     * @return El invocador disponible que cumple con el requisito de memoria, o null si no se encuentra ninguno.
-     */
-    private Invoker findAvailableInvoker(int requiredMemoryMB) {
-        // Itera a través de los Invokers y selecciona el primero que tenga suficiente memoria disponible.
-        System.out.println(invokers);
-        for (Invoker invoker : invokers) {
-            if (invoker.getFreeMemoryMB() >= requiredMemoryMB) {
-                return invoker;
-            }
-        }
-
-        // Si no se encuentra ningún Invoker disponible, devuelve null.
-        return null;
+        actions.put(actionName, action);
+        memory.put(actionName, memoryMB);
     }
 
     /**

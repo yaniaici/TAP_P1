@@ -33,7 +33,7 @@ public class UniformGroupResourceManager implements ResourceManagementStrategy {
      * @return Lista de invocadores asignados a cada acción.
      */
     @Override
-    public List<Invoker> assignFunctions(List<String> actions, List<Invoker> availableInvokers) {
+    public List<Invoker> assignInvokers(List<String> actions, List<Invoker> availableInvokers, List<Integer> memory) {
         List<Invoker> assignedInvokers = new ArrayList<>();
 
         int totalFunctions = actions.size();
@@ -43,7 +43,8 @@ public class UniformGroupResourceManager implements ResourceManagementStrategy {
             for (Invoker invoker : availableInvokers) {
                 for (int i = 0; i < groupSize; i++) {
                     if (index < totalFunctions) {
-                        assignedInvokers.add(invoker);
+                        if(memory.get(index) < invoker.getFreeMemoryMB())
+                            assignedInvokers.add(invoker);
                         index++;
                     } else {
                         break;
